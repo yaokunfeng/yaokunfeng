@@ -1,0 +1,68 @@
+a, a:visited, a:active {
+  color: #444;
+}
+
+.container {
+  max-width: 900px;
+  margin: auto;
+}
+
+#vis {
+  width: 600px;
+  height: 600px;
+  /*background-color:#aaa;
+  clear: both;
+  margin-bottom: 10px;*/
+  float:left;
+}
+
+#legend {
+  width: 300px;
+  height: 120px;
+  /*background-color:#eee;
+  clear: both;
+  margin-bottom: 10px;*/
+  float:left;
+}
+
+#school_filter {
+  width: 300px;
+  height: 60px;
+  /*background-color:#eee;
+  clear: both;
+  margin-bottom: 10px;*/
+  float:left;
+}
+
+#school-detail{
+  width: 300px;
+  height: 200px;
+  /*background-color:#eee;
+  clear: both;
+  margin-bottom: 10px;*/
+  float:left;
+}
+
+.tooltip {
+	position: absolute;
+	top: 100px;
+	left: 100px;
+  -moz-border-radius:5px;
+	border-radius: 5px;
+  border: 2px solid #000;
+  background: #fff;
+	opacity: .9;
+  color: black;
+	padding: 10px;
+	width: 300px;
+	font-size: 12px;
+	z-index: 10;
+}
+
+.tooltip .title {
+	font-size: 13px;
+}
+
+.tooltip .name {
+  font-weight:bold;
+}

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>New York City School Budget</title>
+
+    <style type="text/css">
+        html { height: 100% }
+        body { height: 100%; margin: 0; padding: 0 }
+        #map-canvas { height: 100% }
+    </style>
+	<link rel="stylesheet" href="nyc_budget.css">
+    <link href='https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.css'
+    	rel='stylesheet' type='text/css'/>
+    <!--meta http-equiv="X-UA-Compatible" content="IE=Edge"-->
+	<meta charset="utf-8"/>
+</head>
+<body>
+    <div id="map-canvas"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.js"></script>
+    <script src="https://d3js.org/d3.v3.js"></script>
+    <script src="https://d3js.org/d3-queue.v3.js"></script>
+    <script src="L.D3SvgOverlay.js"></script>
+    <script src="ToolTip.js"></script>
+    <script>
+
+        // Initializes the basemap.
+        var map = L.map("map-canvas",{center:[40.773889, -73.983611],zoom:12});
+        L.tileLayer('http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a>',
+            subdomains: 'abcd',
+            maxZoom: 19
+        }).addTo(map);
+
+		var fillColor = d3.scale.ordinal()
+			.domain(["1", "2", "3", "4", "5"])
+			.range(["#4E79A7","#F28E2B","#E15759","#76B7B2","#59A14F"]);
+
+
+		
+        // D3-SVG-Overlay callback wrapper. Leaflet is used only for the base map, all of the programmatic action occurs
+        // in d3 code inside of this callback.
+        var mapOverlay = L.d3SvgOverlay(function(sel,proj){
+			//console.log(proj.scale);
+            function paintPointPath(data) {
+                //console.log(data);
+                sel.append('g')
+                        .selectAll('circle')
+                        .data(data)
+                        .enter()
+                        .append('circle')
+                        .attr({
+                            "cx": function (d) {
+                                return proj.latLngToLayerPoint([d.Latitude,d.Longitude]).x;
+                            },
+                            "cy": function (d) {
+                                return proj.latLngToLayerPoint([d.Latitude,d.Longitude]).y;
+                            },
+							"fill": function (d) { return fillColor(d.InstrLvl); },
+							"stroke": function (d) { return d3.rgb(fillColor(d.InstrLvl)).darker(); },
+							"stroke-width": 1,
+                            "r": 3
+                        })
+						.on('mouseover', showTip)
+						.on('mouseout', hideTip)
+						.on('click', showSchoolDetail);
+
+            }
+
+            // Paints all of the paths.
+            function paintPathSampler() {
+                d3.csv("School Budget NYC Geocoding.csv", function (data) {
+					paintPointPath(data);
+
+                });
+            }
+/*
+            function delayedHello(callback) {
+                setTimeout(function() {
+                    //console.log("Hello!");
+                    callback(null);
+              }, 10);
+            }
+*/
+            q = d3.queue();
+            q.defer(paintPathSampler);
+            //q.defer(delayedHello);
+			/*
+            q.await(function(error) {
+                if (error) throw error;
+                console.log("Goodbye!");
+            });
+			*/
+        });
+
+        // Add overlay to map.
+        mapOverlay.addTo(map);
+
+		var tooltip = floatingTooltip('tooltip', 240);
+		
+  function showTip(d) {
+    // change outline to indicate hover state.
+	console.log(d.UnitLongDesc);
+    d3.select(this).attr('stroke', 'black');
+    var content = '<span class="name">Title: </span><span class="value">' +
+                  d.UnitLongDesc +
+                  '</span><br/>' +
+                  '<span class="name">Amount: </span><span class="value">$' +
+                  addCommas(d.Total) +
+                  '</span><br/>' +
+                  '<span class="name">LcmsUnit: </span><span class="value">' +
+                  d.LcmsUnit +
+                  '</span>';
+
+    tooltip.showTooltip(content, d3.event);
+  }
+
+  function showSchoolDetail(d) {
+    // change outline to indicate hover state.
+	d3.select("#vis").selectAll("circle").style("opacity", 1);
+	//console.log(d);
+	d3.select(this)
+		.attr('stroke', 'black')
+		.attr('stroke-width', 3);
+    var schoolDetail = d3.select("#school-detail");
+    var content = '<span class="name">Title: </span><span class="value">' +
+                  d.name +
+                  '</span><br/>' +
+                  '<span class="name">Amount: </span><span class="value">$' +
+                  addCommas(d.value) +
+                  '</span><br/>' +
+                  '<span class="name">LcmsUnit: </span><span class="value">' +
+                  d.id +
+                  '</span>';
+	schoolDetail.html(content);
+  }
+
+  function hideTip(d) {
+    // reset outline
+    d3.select(this)
+		.attr('stroke', d3.rgb(fillColor(d.group)).darker())
+		.attr('stroke-width', 1);
+    tooltip.hideTooltip();
+  }
+
+  function addCommas(nStr) {
+  nStr += '';
+  var x = nStr.split('.');
+  var x1 = x[0];
+  var x2 = x.length > 1 ? '.' + x[1] : '';
+  var rgx = /(\d+)(\d{3})/;
+  while (rgx.test(x1)) {
+    x1 = x1.replace(rgx, '$1' + ',' + '$2');
+  }
+
+  return x1 + x2;
+}
+
+  var fillColor = d3.scale.ordinal()
+    .domain(["1", "2", "3", "4", "5"])
+    .range(["#4E79A7","#F28E2B","#E15759","#76B7B2","#59A14F"]);
+
+		</script>
+</body>
+</html>
